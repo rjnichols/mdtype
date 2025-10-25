@@ -144,6 +144,33 @@ function generatePageSetup(config: DocumentConfig, outputPath: string, sourceDir
 }
 
 /**
+ * Generate Typst font setup
+ */
+function generateFontSetup(config: DocumentConfig): string {
+  if (!config.font) {
+    return '';
+  }
+
+  let fontName: string;
+
+  // Map common font aliases to Typst font names
+  switch (config.font.toLowerCase()) {
+    case 'serif':
+      fontName = 'New Computer Modern';
+      break;
+    case 'sans-serif':
+    case 'sans':
+      fontName = 'New Computer Modern Sans';
+      break;
+    default:
+      // Use custom font name as-is
+      fontName = config.font;
+  }
+
+  return `#set text(font: "${fontName}")\n\n`;
+}
+
+/**
  * Convert markdown AST to Typst format
  */
 export function convertToTypst(ast: Root, options: ConversionOptions): string {
@@ -306,6 +333,9 @@ export function convertToTypst(ast: Root, options: ConversionOptions): string {
 
   // Generate page setup if config provided
   if (config) {
+    // Add font setup first (before page setup)
+    output += generateFontSetup(config);
+
     output += generatePageSetup(config, outputPath, sourceDir);
 
     // Add heading numbering if enabled

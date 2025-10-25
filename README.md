@@ -10,6 +10,7 @@ Convert Markdown documents with Mermaid diagrams to beautifully typeset Typst fo
 - 🔢 **Numbered Headings**: Optional automatic heading numbering (1, 1.1, 1.1.1, etc.)
 - 📚 **Table of Contents**: Generate TOC at any position in your document
 - 📑 **Headers & Footers**: Configure custom headers/footers with page numbers, dates, and logos via YAML frontmatter
+- 🔤 **Font Selection**: Choose between serif, sans-serif, or custom fonts via YAML frontmatter
 - 📄 **Auto PDF Generation**: Specify `.pdf` output to automatically compile with Typst
 - 🚀 **Simple CLI**: Easy-to-use command-line interface
 - 🐳 **Docker Support**: Run in a containerized environment with all dependencies
@@ -243,6 +244,49 @@ footer:
 ### Example
 
 See `examples/with-headers.md` for a complete example with all features.
+
+## Font Selection
+
+You can specify the font family for your document using YAML frontmatter:
+
+```markdown
+---
+font: sans-serif
+---
+
+# Your Document Content
+```
+
+### Available Font Options
+
+- **`serif`** - Typst's default serif font (New Computer Modern)
+- **`sans-serif`** or **`sans`** - Sans-serif font (New Computer Modern Sans)
+- **Custom font name** - Any font installed on your system (e.g., `"Arial"`, `"Times New Roman"`)
+
+### Examples
+
+```markdown
+---
+font: sans-serif
+---
+# Modern Sans-Serif Document
+```
+
+```markdown
+---
+font: serif
+---
+# Traditional Serif Document
+```
+
+```markdown
+---
+font: "Liberation Serif"
+---
+# Custom Font Document
+```
+
+**Note**: When using custom fonts, ensure they are installed on your system or available to Typst. The font name is passed directly to Typst's `#set text(font: "...")` command.
 
 ## Project Structure
 

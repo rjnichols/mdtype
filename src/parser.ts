@@ -25,6 +25,7 @@ export interface DocumentConfig {
   date?: string;
   numbered_headings?: boolean;
   toc_depth?: number;
+  font?: string;  // Font family: "serif", "sans-serif", or custom font name
   header?: {
     left?: string;
     center?: string;
