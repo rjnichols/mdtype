@@ -185,6 +185,7 @@ function generatePaginationSetup(config: DocumentConfig): string {
   return '#set block(sticky: true)\n\n';
 }
 
+
 /**
  * Generate Typst code block styling
  */
@@ -227,21 +228,44 @@ export function convertToTypst(ast: Root, options: ConversionOptions): string {
   const diagramMap = new Map(diagrams.map(d => [d.id, d.imagePath]));
   let diagramIndex = 0;
 
+  // Track previous element for page break logic
+  let previousWasHeading = false;
+  const breakLevel = config?.page_break_before_heading ?? 2;
+  const pageBreaksEnabled = breakLevel !== false;
+
   function processNode(node: Content): string {
     switch (node.type) {
       case 'heading':
+        let pageBreak = '';
+
+        // Determine if we should insert a page break before this heading
+        if (pageBreaksEnabled && typeof breakLevel === 'number') {
+          // Only consider page breaks for headings at or above the break level
+          if (node.depth <= breakLevel) {
+            // Insert break if the previous element was NOT a heading
+            // This means the first heading in a consecutive sequence gets the break
+            if (!previousWasHeading) {
+              pageBreak = '#pagebreak(weak: true)\n';
+            }
+          }
+        }
+
+        // Update tracking - current element is a heading
+        previousWasHeading = true;
+
         // Check if this is a level 1 heading that should be treated as title
         if (node.depth === 1 && config?.treat_top_level_as_title) {
           // Use explicit heading() function with outlined: false to exclude from TOC
           const headingText = processChildren(node.children);
-          return `#heading(level: 1, outlined: false)[${headingText}]\n\n`;
+          return `${pageBreak}#heading(level: 1, outlined: false)[${headingText}]\n\n`;
         }
 
         // Standard heading using = syntax
         const prefix = '='.repeat(node.depth);
-        return `${prefix} ${processChildren(node.children)}\n\n`;
+        return `${pageBreak}${prefix} ${processChildren(node.children)}\n\n`;
 
       case 'paragraph':
+        previousWasHeading = false;
         return `${processChildren(node.children)}\n\n`;
 
       case 'text':
@@ -260,6 +284,7 @@ export function convertToTypst(ast: Root, options: ConversionOptions): string {
         return `\`${node.value}\``;
 
       case 'code':
+        previousWasHeading = false;
         if (node.lang === 'mermaid') {
           // Replace mermaid block with image reference (PNG for better Typst compatibility)
           const diagram = diagrams[diagramIndex++];
@@ -276,23 +301,28 @@ export function convertToTypst(ast: Root, options: ConversionOptions): string {
         return `#link("${node.url}")[${processChildren(node.children)}]`;
 
       case 'image':
+        previousWasHeading = false;
         const alt = node.alt || '';
         return `#figure(\n  image("${node.url}"),\n  caption: [${alt}]\n)\n\n`;
 
       case 'list':
+        previousWasHeading = false;
         return processList(node);
 
       case 'listItem':
         return processListItem(node);
 
       case 'blockquote':
+        previousWasHeading = false;
         const content = processChildren(node.children);
         return `#quote[\n${content}]\n\n`;
 
       case 'table':
+        previousWasHeading = false;
         return processTable(node);
 
       case 'thematicBreak':
+        previousWasHeading = false;
         return `#line(length: 100%)\n\n`;
 
       case 'break':
@@ -427,7 +457,7 @@ export function convertToTypst(ast: Root, options: ConversionOptions): string {
       }
     }
   } else {
-    // Even without config, default to preventing heading orphans and styling code blocks
+    // Even without config, apply sensible defaults
     output += '#set block(sticky: true)\n\n';
     output += generateCodeBlockStyling({ style_code_blocks: true });
   }

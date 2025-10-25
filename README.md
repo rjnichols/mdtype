@@ -12,6 +12,7 @@ Convert Markdown documents with Mermaid diagrams to beautifully typeset Typst fo
 - 📑 **Headers & Footers**: Configure custom headers/footers with page numbers, dates, and logos via YAML frontmatter
 - 🔤 **Font Selection**: Choose between serif, sans-serif, or custom fonts via YAML frontmatter
 - 📑 **Smart Pagination**: Prevents orphaned headings at page bottoms (enabled by default)
+- 📄 **Page Breaks**: Configurable automatic page breaks before headings (level 2 by default)
 - 🎨 **Styled Code Blocks**: Automatically adds background color and styling to code blocks (enabled by default)
 - 📄 **Auto PDF Generation**: Specify `.pdf` output to automatically compile with Typst
 - 🚀 **Simple CLI**: Easy-to-use command-line interface
@@ -366,6 +367,83 @@ prevent_heading_orphans: false
 - ✅ Better visual flow in multi-page documents
 
 **Note**: This feature uses Typst's native sticky block behavior, which is the recommended approach for professional document typesetting.
+
+## Page Breaks Before Headings
+
+mdtype can automatically insert page breaks before headings at a specified level, making it easy to start new sections on fresh pages.
+
+### Default Behavior
+
+By default, page breaks are added before **level 2 headings** (`##`). This means each major section starts on a new page.
+
+### Smart Consecutive Heading Detection
+
+The page break logic is smart about consecutive headings:
+- If a level 1 heading (`#`) is immediately followed by a level 2 heading (`##`), only **one** page break is inserted
+- Prevents redundant blank pages between consecutive headings
+- Uses Typst's `weak: true` page breaks to avoid breaks at the document start
+
+### Configuration Options
+
+Control page break behavior via YAML frontmatter:
+
+```markdown
+---
+page_break_before_heading: 2  # Default: break before ## headings
+---
+```
+
+**Available values:**
+- `1` - Page breaks before level 1 headings (`#`)
+- `2` - Page breaks before level 2 headings (`##`) - **default**
+- `3` - Page breaks before level 3 headings (`###`)
+- `false` - Disable automatic page breaks
+
+### Examples
+
+**Example 1: Default behavior (level 2)**
+```markdown
+# My Document Title
+
+## Introduction
+← New page starts here
+
+## Methods
+← New page starts here
+```
+
+**Example 2: Break before level 1**
+```markdown
+---
+page_break_before_heading: 1
+---
+
+# Chapter 1
+← New page
+
+# Chapter 2
+← New page
+```
+
+**Example 3: Disable page breaks**
+```markdown
+---
+page_break_before_heading: false
+---
+
+## Section 1
+## Section 2
+← No automatic page breaks
+```
+
+### How It Works
+
+mdtype generates a Typst show rule that:
+1. Checks if there are any headings before the current one
+2. Checks if the previous heading is on a different page
+3. Only inserts a page break if needed (avoiding redundant breaks)
+
+This ensures clean, professional pagination without manual intervention.
 
 ## Code Block Styling
 
