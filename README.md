@@ -11,6 +11,8 @@ Convert Markdown documents with Mermaid diagrams to beautifully typeset Typst fo
 - 📚 **Table of Contents**: Generate TOC at any position in your document
 - 📑 **Headers & Footers**: Configure custom headers/footers with page numbers, dates, and logos via YAML frontmatter
 - 🔤 **Font Selection**: Choose between serif, sans-serif, or custom fonts via YAML frontmatter
+- 📑 **Smart Pagination**: Prevents orphaned headings at page bottoms (enabled by default)
+- 🎨 **Styled Code Blocks**: Automatically adds background color and styling to code blocks (enabled by default)
 - 📄 **Auto PDF Generation**: Specify `.pdf` output to automatically compile with Typst
 - 🚀 **Simple CLI**: Easy-to-use command-line interface
 - 🐳 **Docker Support**: Run in a containerized environment with all dependencies
@@ -287,6 +289,84 @@ font: "Liberation Serif"
 ```
 
 **Note**: When using custom fonts, ensure they are installed on your system or available to Typst. The font name is passed directly to Typst's `#set text(font: "...")` command.
+
+## Pagination Control
+
+mdtype automatically improves pagination by preventing orphaned headings—situations where a heading appears alone at the bottom of a page with its content on the next page.
+
+### How It Works
+
+By default, mdtype adds `#set block(sticky: true)` to your Typst output. This tells Typst to keep headings "stuck" to the content that follows them, ensuring they stay together on the same page.
+
+### Disabling Orphan Prevention
+
+If you need to disable this behavior for specific documents, you can do so via YAML frontmatter:
+
+```markdown
+---
+prevent_heading_orphans: false
+---
+
+# Your Document Content
+```
+
+### What Gets Prevented
+
+- ✅ Headings appearing alone at the bottom of a page
+- ✅ Page breaks between headings and their first paragraph
+- ✅ Better visual flow in multi-page documents
+
+**Note**: This feature uses Typst's native sticky block behavior, which is the recommended approach for professional document typesetting.
+
+## Code Block Styling
+
+mdtype automatically styles code blocks to make them visually distinct from regular text, similar to how they appear in GitHub and other Markdown renderers.
+
+### Default Styling
+
+By default, code blocks receive:
+
+- **Light gray background** - Makes code stand out from surrounding text
+- **Padding/inset** - Adds spacing inside the code block for readability
+- **Rounded corners** - Creates a modern, polished appearance
+- **Inline code styling** - Inline `code` also gets subtle background highlighting
+
+### Examples
+
+**Block code:**
+````markdown
+```python
+def hello():
+    print("Hello, World!")
+```
+````
+
+**Inline code:**
+```markdown
+Use the `print()` function to output text.
+```
+
+Both will have distinct gray backgrounds in the PDF output.
+
+### Disabling Code Block Styling
+
+If you prefer unstyled code blocks, you can disable this feature via YAML frontmatter:
+
+```markdown
+---
+style_code_blocks: false
+---
+
+# Your Document Content
+```
+
+### Technical Details
+
+mdtype uses Typst's `show raw` rules to apply styling:
+- Block code: `#show raw.where(block: true): block.with(fill: luma(240), ...)`
+- Inline code: `#show raw.where(block: false): box.with(fill: luma(240), ...)`
+
+This ensures consistent, professional-looking code formatting throughout your documents.
 
 ## Project Structure
 

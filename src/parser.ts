@@ -26,6 +26,8 @@ export interface DocumentConfig {
   numbered_headings?: boolean;
   toc_depth?: number;
   font?: string;  // Font family: "serif", "sans-serif", or custom font name
+  prevent_heading_orphans?: boolean;  // Prevent headings from appearing alone at bottom of page (default: true)
+  style_code_blocks?: boolean;  // Add background and styling to code blocks (default: true)
   header?: {
     left?: string;
     center?: string;

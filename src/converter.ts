@@ -171,6 +171,52 @@ function generateFontSetup(config: DocumentConfig): string {
 }
 
 /**
+ * Generate Typst pagination setup
+ */
+function generatePaginationSetup(config: DocumentConfig): string {
+  // Default to preventing heading orphans unless explicitly disabled
+  const preventOrphans = config.prevent_heading_orphans !== false;
+
+  if (!preventOrphans) {
+    return '';
+  }
+
+  // Set block sticky behavior to keep headings with following content
+  return '#set block(sticky: true)\n\n';
+}
+
+/**
+ * Generate Typst code block styling
+ */
+function generateCodeBlockStyling(config: DocumentConfig): string {
+  // Default to styling code blocks unless explicitly disabled
+  const styleCodeBlocks = config.style_code_blocks !== false;
+
+  if (!styleCodeBlocks) {
+    return '';
+  }
+
+  let output = '';
+
+  // Style block code blocks (``` ```)
+  output += '#show raw.where(block: true): block.with(\n';
+  output += '  fill: luma(240),\n';
+  output += '  inset: 10pt,\n';
+  output += '  radius: 4pt,\n';
+  output += ')\n\n';
+
+  // Style inline code (`code`)
+  output += '#show raw.where(block: false): box.with(\n';
+  output += '  fill: luma(240),\n';
+  output += '  inset: (x: 3pt, y: 0pt),\n';
+  output += '  outset: (y: 3pt),\n';
+  output += '  radius: 2pt,\n';
+  output += ')\n\n';
+
+  return output;
+}
+
+/**
  * Convert markdown AST to Typst format
  */
 export function convertToTypst(ast: Root, options: ConversionOptions): string {
@@ -336,12 +382,22 @@ export function convertToTypst(ast: Root, options: ConversionOptions): string {
     // Add font setup first (before page setup)
     output += generateFontSetup(config);
 
+    // Add pagination setup (sticky blocks for heading orphan prevention)
+    output += generatePaginationSetup(config);
+
+    // Add code block styling (backgrounds and borders)
+    output += generateCodeBlockStyling(config);
+
     output += generatePageSetup(config, outputPath, sourceDir);
 
     // Add heading numbering if enabled
     if (config.numbered_headings) {
       output += '#set heading(numbering: "1.1")\n\n';
     }
+  } else {
+    // Even without config, default to preventing heading orphans and styling code blocks
+    output += '#set block(sticky: true)\n\n';
+    output += generateCodeBlockStyling({ style_code_blocks: true });
   }
 
   // Process all top-level nodes (skip frontmatter/yaml nodes)
