@@ -1,0 +1,37 @@
+{
+  "name": "mdtype",
+  "version": "1.0.0",
+  "description": "Convert Markdown with Mermaid diagrams to Typst format",
+  "main": "dist/cli.js",
+  "bin": {
+    "mdtype": "./dist/cli.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/cli.js",
+    "dev": "tsc && node dist/cli.js"
+  },
+  "keywords": [
+    "markdown",
+    "typst",
+    "mermaid",
+    "converter",
+    "cli"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@mermaid-js/mermaid-cli": "^11.4.1",
+    "remark-parse": "^11.0.0",
+    "remark-gfm": "^4.0.0",
+    "remark-math": "^6.0.0",
+    "remark-frontmatter": "^5.0.0",
+    "yaml": "^2.3.4",
+    "unified": "^11.0.5",
+    "unist-util-visit": "^5.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.10",
+    "typescript": "^5.5.3"
+  }
+}
