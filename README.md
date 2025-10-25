@@ -13,7 +13,9 @@ Convert Markdown documents with Mermaid diagrams to beautifully typeset Typst fo
 - 🔤 **Font Selection**: Choose between serif, sans-serif, or custom fonts via YAML frontmatter
 - 📑 **Smart Pagination**: Prevents orphaned headings at page bottoms (enabled by default)
 - 📄 **Page Breaks**: Configurable automatic page breaks before headings (level 2 by default)
+- ✂️ **Manual Page Breaks**: Insert page breaks anywhere using `<!-- pagebreak -->` comments
 - 🎨 **Styled Code Blocks**: Automatically adds background color and styling to code blocks (enabled by default)
+- 📏 **Heading Spacing**: Configurable whitespace before and after headings for better readability (2.5em before, 1.5em after by default)
 - 📄 **Auto PDF Generation**: Specify `.pdf` output to automatically compile with Typst
 - 🚀 **Simple CLI**: Easy-to-use command-line interface
 - 🐳 **Docker Support**: Run in a containerized environment with all dependencies
@@ -445,6 +447,45 @@ mdtype generates a Typst show rule that:
 
 This ensures clean, professional pagination without manual intervention.
 
+### Manual Page Breaks
+
+In addition to automatic page breaks, you can insert manual page breaks anywhere in your document using the `<!-- pagebreak -->` HTML comment:
+
+```markdown
+## Section 1
+
+Some content here.
+
+<!-- pagebreak -->
+
+## Section 2
+
+This section starts on a new page.
+```
+
+**Features:**
+- Insert page breaks at any location in your document
+- Works independently of automatic page break settings
+- Useful for fine-tuning document layout
+- Uses Typst's `#pagebreak()` command
+
+**Example:**
+```markdown
+# Report
+
+## Executive Summary
+
+Key findings and recommendations.
+
+<!-- pagebreak -->
+
+## Detailed Analysis
+
+This section begins on a fresh page.
+```
+
+This gives you complete control over pagination when needed, while still benefiting from automatic page breaks for consistent structure.
+
 ## Code Block Styling
 
 mdtype automatically styles code blocks to make them visually distinct from regular text, similar to how they appear in GitHub and other Markdown renderers.
@@ -494,6 +535,94 @@ mdtype uses Typst's `show raw` rules to apply styling:
 - Inline code: `#show raw.where(block: false): box.with(fill: luma(240), ...)`
 
 This ensures consistent, professional-looking code formatting throughout your documents.
+
+## Heading Spacing
+
+mdtype automatically adds comfortable whitespace before and after headings to improve visual hierarchy and document readability.
+
+### Default Spacing
+
+By default, headings have:
+- **2.5em** of space above (before the heading)
+- **1.5em** of space below (after the heading)
+
+This creates clear visual separation between sections while keeping headings close to their content.
+
+### Customizing Spacing
+
+You can adjust spacing in several ways using YAML frontmatter:
+
+**Simple format (affects "after" spacing only):**
+```markdown
+---
+heading_spacing: "1em"
+---
+```
+
+**Full control (before and after):**
+```markdown
+---
+heading_spacing:
+  before: "3em"
+  after: "1em"
+---
+```
+
+**Supported spacing units:**
+- `em` - Relative to font size (e.g., `"1em"`, `"0.5em"`, `"2em"`)
+- `pt` - Points (e.g., `"12pt"`, `"18pt"`)
+- `cm` - Centimeters (e.g., `"0.5cm"`)
+- `mm` - Millimeters (e.g., `"5mm"`)
+- `in` - Inches (e.g., `"0.2in"`)
+
+### Examples
+
+**More spacing above headings:**
+```markdown
+---
+heading_spacing:
+  before: "4em"
+  after: "1.5em"
+---
+```
+
+**Compact layout:**
+```markdown
+---
+heading_spacing:
+  before: "1em"
+  after: "0.5em"
+---
+```
+
+**Only before spacing (no after):**
+```markdown
+---
+heading_spacing:
+  before: "2em"
+  after: false
+---
+```
+
+**Only after spacing (no before):**
+```markdown
+---
+heading_spacing:
+  before: false
+  after: "1em"
+---
+```
+
+**Disable all spacing:**
+```markdown
+---
+heading_spacing: false
+---
+```
+
+### Technical Details
+
+mdtype uses Typst's `#show heading: set block(above: <spacing>, below: <spacing>)` rule to control spacing. This provides consistent, professional spacing throughout the document while remaining fully customizable.
 
 ## Project Structure
 

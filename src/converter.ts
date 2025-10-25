@@ -218,6 +218,56 @@ function generateCodeBlockStyling(config: DocumentConfig): string {
 }
 
 /**
+ * Generate Typst heading spacing
+ */
+function generateHeadingSpacing(config: DocumentConfig): string {
+  const spacingConfig = config.heading_spacing;
+
+  // If explicitly set to false, don't add spacing
+  if (spacingConfig === false) {
+    return '';
+  }
+
+  let beforeSpacing: string | false;
+  let afterSpacing: string | false;
+
+  // Handle different config formats
+  if (spacingConfig === undefined) {
+    // Default: 2.5em before, 1.5em after
+    beforeSpacing = '2.5em';
+    afterSpacing = '1.5em';
+  } else if (typeof spacingConfig === 'string') {
+    // Legacy format: string applies to "after" only, before is default
+    beforeSpacing = '2.5em';
+    afterSpacing = spacingConfig;
+  } else if (typeof spacingConfig === 'object') {
+    // New format: explicit before/after
+    beforeSpacing = spacingConfig.before === undefined ? '2.5em' : spacingConfig.before;
+    afterSpacing = spacingConfig.after === undefined ? '1.5em' : spacingConfig.after;
+  } else {
+    // Fallback
+    beforeSpacing = '2.5em';
+    afterSpacing = '1.5em';
+  }
+
+  // Build the spacing parameters
+  const params: string[] = [];
+  if (beforeSpacing !== false) {
+    params.push(`above: ${beforeSpacing}`);
+  }
+  if (afterSpacing !== false) {
+    params.push(`below: ${afterSpacing}`);
+  }
+
+  // If no spacing is configured, return empty
+  if (params.length === 0) {
+    return '';
+  }
+
+  return `#show heading: set block(${params.join(', ')})\n\n`;
+}
+
+/**
  * Convert markdown AST to Typst format
  */
 export function convertToTypst(ast: Root, options: ConversionOptions): string {
@@ -341,6 +391,10 @@ export function convertToTypst(ast: Root, options: ConversionOptions): string {
 
           return `#outline(depth: ${tocDepth})\n\n`;
         }
+        // Check for page break marker: <!-- pagebreak -->
+        if (node.value.trim() === '<!-- pagebreak -->') {
+          return `#pagebreak()\n\n`;
+        }
         // Skip other HTML
         return '';
 
@@ -430,6 +484,9 @@ export function convertToTypst(ast: Root, options: ConversionOptions): string {
     // Add pagination setup (sticky blocks for heading orphan prevention)
     output += generatePaginationSetup(config);
 
+    // Add heading spacing (space below headings)
+    output += generateHeadingSpacing(config);
+
     // Add code block styling (backgrounds and borders)
     output += generateCodeBlockStyling(config);
 
@@ -459,6 +516,7 @@ export function convertToTypst(ast: Root, options: ConversionOptions): string {
   } else {
     // Even without config, apply sensible defaults
     output += '#set block(sticky: true)\n\n';
+    output += generateHeadingSpacing({});
     output += generateCodeBlockStyling({ style_code_blocks: true });
   }
 

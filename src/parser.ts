@@ -30,6 +30,7 @@ export interface DocumentConfig {
   style_code_blocks?: boolean;  // Add background and styling to code blocks (default: true)
   treat_top_level_as_title?: boolean;  // Treat single top-level heading as document title (auto-detected by default)
   page_break_before_heading?: number | false;  // Add page breaks before headings at specified level (default: 2)
+  heading_spacing?: string | false | { before?: string | false, after?: string | false };  // Spacing around headings (default: before "2.5em", after "1.5em"), set to false to disable
   header?: {
     left?: string;
     center?: string;
