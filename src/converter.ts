@@ -217,7 +217,12 @@ export function convertToTypst(ast: Root, options: ConversionOptions): string {
         return ' \\\n';
 
       case 'html':
-        // Skip HTML
+        // Check for TOC marker: <!-- toc -->
+        if (node.value.trim() === '<!-- toc -->') {
+          const tocDepth = config?.toc_depth ?? 3;
+          return `#outline(depth: ${tocDepth})\n\n`;
+        }
+        // Skip other HTML
         return '';
 
       case 'inlineMath':
@@ -293,12 +298,19 @@ export function convertToTypst(ast: Root, options: ConversionOptions): string {
     // Escape special Typst characters
     // Dollar signs need to be escaped as they trigger math mode
     text = text.replace(/\$/g, '\\$');
+    // At signs need to be escaped as they trigger label references
+    text = text.replace(/@/g, '\\@');
     return text;
   }
 
   // Generate page setup if config provided
   if (config) {
     output += generatePageSetup(config, outputPath, sourceDir);
+
+    // Add heading numbering if enabled
+    if (config.numbered_headings) {
+      output += '#set heading(numbering: "1.1")\n\n';
+    }
   }
 
   // Process all top-level nodes (skip frontmatter/yaml nodes)

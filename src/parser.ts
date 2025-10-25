@@ -23,6 +23,8 @@ export interface DocumentConfig {
   title?: string;
   author?: string;
   date?: string;
+  numbered_headings?: boolean;
+  toc_depth?: number;
   header?: {
     left?: string;
     center?: string;

@@ -7,6 +7,8 @@ Convert Markdown documents with Mermaid diagrams to beautifully typeset Typst fo
 - ✨ **CommonMark & GFM Support**: Headings, lists, links, images, tables, task lists, strikethrough
 - 📊 **Mermaid Diagrams**: Automatically renders mermaid diagrams to high-quality PNG images
 - 🧮 **Math Equations**: Converts LaTeX-style math to Typst math syntax
+- 🔢 **Numbered Headings**: Optional automatic heading numbering (1, 1.1, 1.1.1, etc.)
+- 📚 **Table of Contents**: Generate TOC at any position in your document
 - 📑 **Headers & Footers**: Configure custom headers/footers with page numbers, dates, and logos via YAML frontmatter
 - 📄 **Auto PDF Generation**: Specify `.pdf` output to automatically compile with Typst
 - 🚀 **Simple CLI**: Easy-to-use command-line interface
@@ -150,6 +152,60 @@ Regular code blocks are preserved with syntax highlighting hints
 
 ### Mermaid Diagrams
 Automatically rendered to high-quality PNG images (2x resolution) and embedded as figures
+
+## Numbered Headings and Table of Contents
+
+### Numbered Headings
+
+Enable automatic heading numbering by adding `numbered_headings: true` to your YAML frontmatter:
+
+```markdown
+---
+numbered_headings: true
+---
+
+# Introduction
+This becomes: 1 Introduction
+
+## Getting Started
+This becomes: 1.1 Getting Started
+
+### Installation
+This becomes: 1.1.1 Installation
+```
+
+### Table of Contents
+
+Insert a table of contents anywhere in your document using the `<!-- toc -->` HTML comment:
+
+```markdown
+---
+toc_depth: 3  # Optional: defaults to 3 (shows h1, h2, h3)
+---
+
+# My Document
+
+This is the introduction.
+
+<!-- toc -->
+
+# Chapter 1
+Content here...
+
+## Section 1.1
+More content...
+```
+
+The `<!-- toc -->` marker will be replaced with a Typst outline showing all headings up to the specified depth.
+
+**Options:**
+- `toc_depth`: Number of heading levels to include (default: 3)
+- Position the `<!-- toc -->` marker anywhere in your document
+- Works great with numbered headings!
+
+### Example
+
+See `examples/with-toc.md` for a complete example with numbered headings and table of contents.
 
 ## Headers and Footers
 
