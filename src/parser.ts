@@ -31,6 +31,7 @@ export interface DocumentConfig {
   treat_top_level_as_title?: boolean;  // Treat single top-level heading as document title (auto-detected by default)
   page_break_before_heading?: number | false;  // Add page breaks before headings at specified level (default: 2)
   heading_spacing?: string | false | { before?: string | false, after?: string | false };  // Spacing around headings (default: before "2.5em", after "1.5em"), set to false to disable
+  keep_code_with_previous?: boolean;  // Keep code blocks together with immediately preceding paragraph (default: true)
   header?: {
     left?: string;
     center?: string;

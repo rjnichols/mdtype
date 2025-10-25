@@ -25,9 +25,42 @@ export interface ConversionOptions {
 }
 
 /**
+ * Convert inline markdown formatting to Typst syntax
+ */
+function convertInlineMarkdown(text: string): string {
+  // Strategy: We need to handle bold before italic to avoid conflicts
+  // 1. Convert **bold** to a temporary placeholder
+  // 2. Convert *italic* to _italic_
+  // 3. Convert placeholder back to *bold*
+
+  // Step 1: Convert **bold** to temporary placeholder
+  const boldPlaceholder = '\x00BOLD\x00';
+  const boldMatches: string[] = [];
+  text = text.replace(/\*\*(.+?)\*\*/g, (match, content) => {
+    boldMatches.push(content);
+    return `${boldPlaceholder}${boldMatches.length - 1}${boldPlaceholder}`;
+  });
+
+  // Step 2: Convert *italic* to _italic_ (now safe, no double asterisks left)
+  text = text.replace(/\*(.+?)\*/g, '_$1_');
+
+  // Step 3: Convert placeholders back to *bold*
+  text = text.replace(new RegExp(`${boldPlaceholder}(\\d+)${boldPlaceholder}`, 'g'), (match, index) => {
+    return `*${boldMatches[parseInt(index)]}*`;
+  });
+
+  // Note: _italic_ is already correct Typst syntax, no need to convert
+
+  return text;
+}
+
+/**
  * Process placeholder strings in header/footer content
  */
 function processPlaceholder(text: string, outputPath: string, sourceDir: string): string {
+  // Convert inline markdown formatting to Typst syntax first
+  text = convertInlineMarkdown(text);
+
   // Check if we need context wrapper (for page counters)
   const needsContext = text.includes('{page}') || text.includes('{total-pages}');
 
@@ -520,11 +553,60 @@ export function convertToTypst(ast: Root, options: ConversionOptions): string {
     output += generateCodeBlockStyling({ style_code_blocks: true });
   }
 
-  // Process all top-level nodes (skip frontmatter/yaml nodes)
-  output += ast.children
-    .filter(node => node.type !== 'yaml')
-    .map(node => processNode(node as Content))
-    .join('');
+  // Process all top-level nodes with keep-together logic
+  const nodes = ast.children.filter(node => node.type !== 'yaml');
+  const keepCodeWithPrevious = config?.keep_code_with_previous !== false; // Default true
+
+  let i = 0;
+  while (i < nodes.length) {
+    const node = nodes[i] as Content;
+
+    // Check for keep-together start marker
+    if (node.type === 'html' && node.value.trim() === '<!-- keep-together -->') {
+      // Find the matching end marker
+      let endIndex = i + 1;
+      let depth = 1;
+      while (endIndex < nodes.length && depth > 0) {
+        const checkNode = nodes[endIndex] as Content;
+        if (checkNode.type === 'html') {
+          if (checkNode.value.trim() === '<!-- keep-together -->') depth++;
+          if (checkNode.value.trim() === '<!-- /keep-together -->') depth--;
+        }
+        if (depth > 0) endIndex++;
+      }
+
+      if (depth === 0) {
+        // Found matching pair - wrap content in non-breakable block
+        output += '#block(breakable: false)[\n';
+        for (let j = i + 1; j < endIndex; j++) {
+          output += processNode(nodes[j] as Content);
+        }
+        output += ']\n\n';
+        i = endIndex + 1; // Skip past the end marker
+        continue;
+      }
+    }
+
+    // Auto-detect: paragraph followed by code block
+    if (keepCodeWithPrevious &&
+        node.type === 'paragraph' &&
+        i + 1 < nodes.length) {
+      const nextNode = nodes[i + 1] as Content;
+      if (nextNode.type === 'code') {
+        // Wrap both paragraph AND code block in non-breakable block
+        output += '#block(breakable: false)[\n';
+        output += processNode(node);
+        output += processNode(nextNode);
+        output += ']\n\n';
+        i += 2; // Skip both nodes
+        continue;
+      }
+    }
+
+    // Normal processing
+    output += processNode(node);
+    i++;
+  }
 
   return output;
 }
