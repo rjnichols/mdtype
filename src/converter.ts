@@ -482,6 +482,22 @@ export function convertToTypst(ast: Root, options: ConversionOptions): string {
     let table = '#figure(\n  table(\n';
     table += `    columns: ${columns},\n`;
 
+    // Add column alignment if specified in markdown
+    if (node.align && Array.isArray(node.align) && node.align.length > 0) {
+      // Convert mdast alignment to Typst alignment
+      const alignments = node.align.map((align: string | null) => {
+        switch (align) {
+          case 'left': return 'left';
+          case 'center': return 'center';
+          case 'right': return 'right';
+          default: return 'auto';  // null or undefined
+        }
+      });
+
+      // Use function-based alignment: (x, y) => (left, center, right).at(x)
+      table += `    align: (x, y) => (${alignments.join(', ')}).at(x),\n`;
+    }
+
     // Add header
     headerRow.children.forEach((cell: TableCell) => {
       const content = processChildren(cell.children);
