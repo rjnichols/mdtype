@@ -28,6 +28,7 @@ export interface DocumentConfig {
   font?: string;  // Font family: "serif", "sans-serif", or custom font name
   prevent_heading_orphans?: boolean;  // Prevent headings from appearing alone at bottom of page (default: true)
   style_code_blocks?: boolean;  // Add background and styling to code blocks (default: true)
+  treat_top_level_as_title?: boolean;  // Treat single top-level heading as document title (auto-detected by default)
   header?: {
     left?: string;
     center?: string;
@@ -77,6 +78,30 @@ export function parseMarkdown(content: string): ParsedMarkdown {
       });
     }
   });
+
+  // Auto-detect if top level should be treated as title
+  // Only auto-detect if user hasn't explicitly set this in frontmatter
+  if (config.treat_top_level_as_title === undefined) {
+    let level1Headings: any[] = [];
+    let firstHeading: any = null;
+
+    visit(ast, 'heading', (node: any) => {
+      if (!firstHeading) {
+        firstHeading = node;
+      }
+      if (node.depth === 1) {
+        level1Headings.push(node);
+      }
+    });
+
+    // Treat as title if:
+    // 1. There's exactly one level 1 heading
+    // 2. It's the first heading in the document
+    config.treat_top_level_as_title =
+      level1Headings.length === 1 &&
+      firstHeading &&
+      firstHeading.depth === 1;
+  }
 
   return { ast, mermaidBlocks, config };
 }

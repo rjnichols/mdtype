@@ -230,6 +230,14 @@ export function convertToTypst(ast: Root, options: ConversionOptions): string {
   function processNode(node: Content): string {
     switch (node.type) {
       case 'heading':
+        // Check if this is a level 1 heading that should be treated as title
+        if (node.depth === 1 && config?.treat_top_level_as_title) {
+          // Use explicit heading() function with outlined: false to exclude from TOC
+          const headingText = processChildren(node.children);
+          return `#heading(level: 1, outlined: false)[${headingText}]\n\n`;
+        }
+
+        // Standard heading using = syntax
         const prefix = '='.repeat(node.depth);
         return `${prefix} ${processChildren(node.children)}\n\n`;
 
@@ -293,7 +301,14 @@ export function convertToTypst(ast: Root, options: ConversionOptions): string {
       case 'html':
         // Check for TOC marker: <!-- toc -->
         if (node.value.trim() === '<!-- toc -->') {
-          const tocDepth = config?.toc_depth ?? 3;
+          let tocDepth = config?.toc_depth ?? 3;
+
+          // If treating top level as title, add 1 to depth
+          // because level 1 is the title and user's depth refers to content levels
+          if (config?.treat_top_level_as_title) {
+            tocDepth += 1;
+          }
+
           return `#outline(depth: ${tocDepth})\n\n`;
         }
         // Skip other HTML
@@ -392,7 +407,24 @@ export function convertToTypst(ast: Root, options: ConversionOptions): string {
 
     // Add heading numbering if enabled
     if (config.numbered_headings) {
-      output += '#set heading(numbering: "1.1")\n\n';
+      // If treating top level as title, skip numbering level 1 headings
+      if (config.treat_top_level_as_title) {
+        // Custom numbering function that skips level 1
+        // Level 2 becomes "1", level 3 becomes "1.1", etc.
+        output += '#set heading(numbering: (..nums) => {\n';
+        output += '  if nums.pos().len() == 1 {\n';
+        output += '    none\n';
+        output += '  } else {\n';
+        output += '    numbering("1.1", ..nums.pos().slice(1))\n';
+        output += '  }\n';
+        output += '})\n\n';
+
+        // Remove hanging indent for level 1 headings (prevents space when numbering is none)
+        output += '#show heading.where(level: 1): set heading(hanging-indent: 0pt)\n\n';
+      } else {
+        // Standard numbering from level 1
+        output += '#set heading(numbering: "1.1")\n\n';
+      }
     }
   } else {
     // Even without config, default to preventing heading orphans and styling code blocks

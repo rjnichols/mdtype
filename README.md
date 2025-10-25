@@ -177,6 +177,51 @@ This becomes: 1.1 Getting Started
 This becomes: 1.1.1 Installation
 ```
 
+#### Smart Title Detection
+
+mdtype intelligently detects when your document has a single top-level heading (`#`) as a title. When detected:
+
+- The level 1 heading is treated as an **unnumbered document title**
+- Numbering starts at level 2 (`##`) as "1", "2", etc.
+- Level 3 (`###`) becomes "1.1", "1.2", etc.
+
+**Auto-detection criteria:**
+- Exactly one `#` heading exists
+- It's the first heading in the document
+
+**Example with auto-detected title:**
+```markdown
+---
+numbered_headings: true
+---
+
+# My Document Title
+(unnumbered)
+
+## Introduction
+This becomes: 1 Introduction
+
+## Methods
+This becomes: 2 Methods
+
+### Data Collection
+This becomes: 2.1 Data Collection
+```
+
+**Manual override:**
+```markdown
+---
+numbered_headings: true
+treat_top_level_as_title: false  # Disable smart detection
+---
+
+# Chapter 1
+This becomes: 1 Chapter 1
+
+# Chapter 2
+This becomes: 2 Chapter 2
+```
+
 ### Table of Contents
 
 Insert a table of contents anywhere in your document using the `<!-- toc -->` HTML comment:
@@ -203,8 +248,12 @@ The `<!-- toc -->` marker will be replaced with a Typst outline showing all head
 
 **Options:**
 - `toc_depth`: Number of heading levels to include (default: 3)
+  - When title detection is active, this counts levels *after* the title
+  - Example: `toc_depth: 3` with a title shows levels 2, 3, and 4 (##, ###, ####)
 - Position the `<!-- toc -->` marker anywhere in your document
 - Works great with numbered headings!
+
+**Note:** The TOC automatically adjusts when smart title detection is active, so `toc_depth: 3` always means "show 3 levels of content" regardless of whether level 1 is treated as a title.
 
 ### Example
 
