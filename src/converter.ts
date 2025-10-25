@@ -60,13 +60,14 @@ function processPlaceholder(text: string, outputPath: string, sourceDir: string)
     });
   }
 
-  // Handle {logo:path} - image logo
+  // Handle {logo:path} or {logo:path:height} - image logo
   const logoMatch = text.match(/{logo:([^}]+)}/g);
   if (logoMatch) {
     logoMatch.forEach(match => {
-      const pathMatch = match.match(/{logo:([^}]+)}/);
+      const pathMatch = match.match(/{logo:([^:}]+)(?::([^}]+))?}/);
       if (pathMatch) {
         const logoPath = pathMatch[1];
+        const logoHeight = pathMatch[2] || '1em';  // Default to 1em if not specified
         // Copy logo to diagrams directory
         const diagramDir = join(outputPath, 'diagrams');
         const logoBasename = basename(logoPath);
@@ -83,7 +84,7 @@ function processPlaceholder(text: string, outputPath: string, sourceDir: string)
         }
 
         const relativePath = relative(outputPath, destPath).replace(/\\/g, '/');
-        text = text.replace(match, `#image("${relativePath}", height: 1em)`);
+        text = text.replace(match, `#image("${relativePath}", height: ${logoHeight})`);
       }
     });
   }
@@ -114,7 +115,7 @@ function generatePageSetup(config: DocumentConfig, outputPath: string, sourceDir
 
     setup += '  header: grid(\n';
     setup += '    columns: (1fr, 1fr, 1fr),\n';
-    setup += '    align: (left, center, right),\n';
+    setup += '    align: (left + horizon, center + horizon, right + horizon),\n';
     // Don't wrap in brackets if already a context expression
     setup += `    ${left.startsWith('context') ? left : `[${left}]`},\n`;
     setup += `    ${center.startsWith('context') ? center : `[${center}]`},\n`;
@@ -130,7 +131,7 @@ function generatePageSetup(config: DocumentConfig, outputPath: string, sourceDir
 
     setup += '  footer: grid(\n';
     setup += '    columns: (1fr, 1fr, 1fr),\n';
-    setup += '    align: (left, center, right),\n';
+    setup += '    align: (left + horizon, center + horizon, right + horizon),\n';
     // Don't wrap in brackets if already a context expression
     setup += `    ${left.startsWith('context') ? left : `[${left}]`},\n`;
     setup += `    ${center.startsWith('context') ? center : `[${center}]`},\n`;

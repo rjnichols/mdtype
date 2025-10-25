@@ -235,7 +235,10 @@ footer:
   - `{date}` - Current date (default: YYYY-MM-DD)
   - `{date:FORMAT}` - Custom format (e.g., `{date:DD/MM/YYYY}`)
 - **Logos**:
-  - `{logo:path/to/logo.png}` - Embed a logo image (height: 1em)
+  - `{logo:path/to/logo.png}` - Embed a logo image (default height: 1em)
+  - `{logo:path/to/logo.png:2cm}` - Embed a logo with custom height (2cm)
+  - `{logo:path/to/logo.png:3em}` - Embed a logo with custom height (3em)
+  - Supported units: `em`, `pt`, `cm`, `mm`, `in`, `%`
 
 ### Example
 

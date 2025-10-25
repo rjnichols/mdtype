@@ -61,9 +61,13 @@ export async function renderMermaidDiagrams(
       const puppeteerConfig = getPuppeteerConfigPath();
 
       // Try to find mmdc - check if we're in Docker or local environment
+      // Use the local installation path relative to the built CLI
+      const localMmdc = resolve(__dirname, '../node_modules/.bin/mmdc');
       const mmdcCommand = process.env.DOCKER_ENV === 'true'
         ? 'node /app/node_modules/@mermaid-js/mermaid-cli/src/cli.js'
-        : 'npx -y mmdc';
+        : existsSync(localMmdc)
+          ? localMmdc
+          : 'npx -y mmdc';  // Fallback to npx
 
       await execAsync(`${mmdcCommand} -i "${mmdPath}" -o "${pngPath}" -b white -s 2 -p "${puppeteerConfig}"`, {
         env: { ...process.env, PUPPETEER_ARGS: '--no-sandbox --disable-setuid-sandbox' }
