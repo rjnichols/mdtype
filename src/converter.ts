@@ -518,10 +518,15 @@ export function convertToTypst(ast: Root, options: ConversionOptions): string {
 
   function escapeTypst(text: string): string {
     // Escape special Typst characters
+    // Hash/pound signs need to be escaped as they trigger function calls
+    text = text.replace(/#/g, '\\#');
     // Dollar signs need to be escaped as they trigger math mode
     text = text.replace(/\$/g, '\\$');
     // At signs need to be escaped as they trigger label references
     text = text.replace(/@/g, '\\@');
+    // Angle brackets need to be escaped as they trigger label syntax
+    text = text.replace(/</g, '\\<');
+    text = text.replace(/>/g, '\\>');
     return text;
   }
 
