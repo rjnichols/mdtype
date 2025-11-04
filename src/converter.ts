@@ -470,6 +470,31 @@ export function convertToTypst(ast: Root, options: ConversionOptions): string {
     return result.trim() + '\n';
   }
 
+  function processTableCell(children: Content[], isBold: boolean = false): string {
+    // Process table cell content without markdown inline formatting
+    // because Typst table cells use content blocks [...] instead
+    let result = '';
+
+    for (const child of children) {
+      if (child.type === 'text') {
+        result += escapeTypst(child.value);
+      } else if (child.type === 'inlineCode') {
+        result += `\`${(child as any).value}\``;
+      } else if (child.type === 'link') {
+        const linkNode = child as any;
+        result += `#link("${linkNode.url}")[${processTableCell(linkNode.children)}]`;
+      } else if (child.type === 'emphasis' || child.type === 'strong') {
+        // For emphasis/strong in table cells, just process the children
+        // Don't add extra formatting markers
+        result += processTableCell((child as any).children);
+      } else if (child.type === 'break') {
+        result += ' \\\n';
+      }
+    }
+
+    return result;
+  }
+
   function processTable(node: any): string {
     const rows = node.children as TableRow[];
     if (rows.length === 0) return '';
@@ -500,14 +525,14 @@ export function convertToTypst(ast: Root, options: ConversionOptions): string {
 
     // Add header
     headerRow.children.forEach((cell: TableCell) => {
-      const content = processChildren(cell.children);
+      const content = processTableCell(cell.children);
       table += `    [*${content.trim()}*],\n`;
     });
 
     // Add body rows
     bodyRows.forEach((row: TableRow) => {
       row.children.forEach((cell: TableCell) => {
-        const content = processChildren(cell.children);
+        const content = processTableCell(cell.children);
         table += `    [${content.trim()}],\n`;
       });
     });
@@ -518,10 +543,15 @@ export function convertToTypst(ast: Root, options: ConversionOptions): string {
 
   function escapeTypst(text: string): string {
     // Escape special Typst characters
+    // Hash/pound signs need to be escaped as they trigger function calls
+    text = text.replace(/#/g, '\\#');
     // Dollar signs need to be escaped as they trigger math mode
     text = text.replace(/\$/g, '\\$');
     // At signs need to be escaped as they trigger label references
     text = text.replace(/@/g, '\\@');
+    // Angle brackets need to be escaped as they trigger label syntax
+    text = text.replace(/</g, '\\<');
+    text = text.replace(/>/g, '\\>');
     return text;
   }
 
